@@ -77,18 +77,20 @@ func RebuildRoutes(app RebuildApp) (*RebuildRoutesResult, error) {
 		}
 	}
 	var result RebuildRoutesResult
+	var toAdd []*url.URL
 	for _, toAddUrl := range expectedMap {
-		err := r.AddRoute(app.GetName(), toAddUrl)
-		if err != nil {
-			return nil, err
-		}
+		toAdd = append(toAdd, toAddUrl)
 		result.Added = append(result.Added, toAddUrl.String())
 	}
+	err = r.AddRoutes(app.GetName(), toAdd)
+	if err != nil {
+		return nil, err
+	}
+	err = r.RemoveRoutes(app.GetName(), toRemove)
+	if err != nil {
+		return nil, err
+	}
 	for _, toRemoveUrl := range toRemove {
-		err := r.RemoveRoute(app.GetName(), toRemoveUrl)
-		if err != nil {
-			return nil, err
-		}
 		result.Removed = append(result.Removed, toRemoveUrl.String())
 	}
 	log.Debugf("[rebuild-routes] routes added for app %q: %s", app.GetName(), strings.Join(result.Added, ", "))
